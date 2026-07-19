@@ -310,7 +310,6 @@
     .item-grid{ grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); }
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -451,9 +450,9 @@
     </div>
 
     <div id="upiQrSection" style="display:none; text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:14px;">
-      <p style="font-size:12.5px; color:var(--cream-dim); margin:0 0 12px;">Scan with any UPI app to pay <strong id="upiAmountLabel" style="color:var(--cream);">₹0</strong></p>
-      <div id="upiQrCode" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
-      <p style="font-size:11px; color:var(--cream-dim); margin:0;">Then tap "Place Order" below to confirm your order.</p>
+      <p style="font-size:12.5px; color:var(--cream-dim); margin:0 0 14px;">Pay <strong id="upiAmountLabel" style="color:var(--cream);">₹0</strong> via UPI</p>
+      <a href="#" id="upiPayBtn" style="display:block; background:var(--tomato); color:#fff; font-weight:700; font-size:15px; padding:14px; border-radius:10px; text-decoration:none; margin-bottom:10px;">📱 Tap to Pay with UPI App</a>
+      <p style="font-size:11px; color:var(--cream-dim); margin:0;">This will open your UPI app (PhonePe, GPay, Paytm, etc.) with the amount pre-filled. Then tap "Place Order" below to confirm.</p>
     </div>
 
     <div class="totals-ticket" id="checkoutTotals"></div>
@@ -892,15 +891,7 @@ function renderUpiQr(){
 
   const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Dom\'s Pizza Order')}`;
 
-  const qrContainer = document.getElementById('upiQrCode');
-  qrContainer.innerHTML = '';
-  new QRCode(qrContainer, {
-    text: upiLink,
-    width: 180,
-    height: 180,
-    colorDark: '#1B1410',
-    colorLight: '#ffffff'
-  });
+  document.getElementById('upiPayBtn').href = upiLink;
 }
 
 function renderCheckoutTotals(){
