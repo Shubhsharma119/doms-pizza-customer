@@ -1,7 +1,8 @@
 // sw.js — minimal service worker so the app is installable.
-// Caches the app shell so the page still opens (without live menu) if offline.
+// Network-first strategy: always try to get the latest version first,
+// only fall back to cache if the network is unavailable (offline).
 
-const CACHE_NAME = 'doms-pizza-v1';
+const CACHE_NAME = 'doms-pizza-v2';
 const APP_SHELL = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -20,17 +21,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-first for API calls (menu/orders should always be fresh),
-// cache-first fallback for the app shell itself.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   if (url.pathname.startsWith('/api/')) {
-    // Always go to network for API calls, don't cache order/menu data.
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
