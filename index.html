@@ -310,10 +310,11 @@
     .item-grid{ grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
-<!-- ============ AUTH GATE (signup/login required before using app) ============ -->
+<!-- ============ AUTH GATE (signup required before using app) ============ -->
 <div id="authGate" style="position:fixed; inset:0; background:var(--bg); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px;">
   <div style="width:100%; max-width:380px;">
     <div style="text-align:center; margin-bottom:28px;">
@@ -322,37 +323,20 @@
       <p style="color:var(--cream-dim); font-size:13px; margin:0;">Sign up to start ordering</p>
     </div>
 
-    <!-- Screen 1: Enter details -->
-    <div id="authDetailsScreen">
-      <div class="field">
-        <label>Full Name</label>
-        <input type="text" id="authName" placeholder="Your name">
-      </div>
-      <div class="field">
-        <label>Phone Number</label>
-        <input type="tel" id="authPhone" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric">
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="authEmail" placeholder="you@example.com">
-      </div>
-      <button class="btn-primary" id="authSendOtpBtn" style="width:100%;"><span>Send OTP</span></button>
-      <p id="authDetailsError" style="color:var(--tomato); font-size:12.5px; margin-top:10px; text-align:center; display:none;"></p>
-      <p style="color:var(--cream-dim); font-size:12px; text-align:center; margin-top:16px;">Already have an account? Just enter your email and we'll skip the name/phone.</p>
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="authName" placeholder="Your name">
     </div>
-
-    <!-- Screen 2: Enter OTP -->
-    <div id="authOtpScreen" style="display:none;">
-      <p style="color:var(--cream-dim); font-size:13px; text-align:center; margin-bottom:16px;">Enter the 6-digit code sent to <strong id="authOtpEmailLabel" style="color:var(--cream);"></strong></p>
-      <div class="field">
-        <label>Verification Code</label>
-        <input type="text" id="authOtpInput" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="text-align:center; letter-spacing:8px; font-size:20px; font-weight:700;">
-      </div>
-      <button class="btn-primary" id="authVerifyBtn" style="width:100%;"><span>Verify &amp; Continue</span></button>
-      <p id="authOtpError" style="color:var(--tomato); font-size:12.5px; margin-top:10px; text-align:center; display:none;"></p>
-      <button id="authResendBtn" style="background:none; color:var(--gold); font-size:12.5px; font-weight:700; width:100%; text-align:center; margin-top:14px;">Resend code</button>
-      <button id="authBackBtn" style="background:none; color:var(--cream-dim); font-size:12px; width:100%; text-align:center; margin-top:8px;">← Change details</button>
+    <div class="field">
+      <label>Phone Number</label>
+      <input type="tel" id="authPhone" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric">
     </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="you@example.com">
+    </div>
+    <button class="btn-primary" id="authSignupBtn" style="width:100%;"><span>Continue</span></button>
+    <p id="authError" style="color:var(--tomato); font-size:12.5px; margin-top:10px; text-align:center; display:none;"></p>
   </div>
 </div>
 
@@ -456,7 +440,21 @@
       <textarea id="custAddress" placeholder="House no, street, landmark..."></textarea>
     </div>
 
-    <div class="cod-note">💵 Payment: Cash on Delivery only, for now.</div>
+    <div class="cod-note" id="paymentNote">💵 Pay cash when your order arrives.</div>
+
+    <div class="field">
+      <label>Payment Method</label>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <button class="toggle-btn active" data-pay="COD" id="payCod">💵 Cash</button>
+        <button class="toggle-btn" data-pay="UPI" id="payUpi">📱 UPI</button>
+      </div>
+    </div>
+
+    <div id="upiQrSection" style="display:none; text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:14px;">
+      <p style="font-size:12.5px; color:var(--cream-dim); margin:0 0 12px;">Scan with any UPI app to pay <strong id="upiAmountLabel" style="color:var(--cream);">₹0</strong></p>
+      <div id="upiQrCode" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
+      <p style="font-size:11px; color:var(--cream-dim); margin:0;">Then tap "Place Order" below to confirm your order.</p>
+    </div>
 
     <div class="totals-ticket" id="checkoutTotals"></div>
 
@@ -469,15 +467,34 @@
   </div>
 </div>
 
-<!-- ============ CONFIRMATION SHEET ============ -->
+<!-- ============ CONFIRMATION SHEET (with live status tracking) ============ -->
 <div class="overlay" id="confirmOverlay">
   <div class="sheet">
     <div class="confirm-wrap">
-      <div class="confirm-badge">✓</div>
-      <h3>Order Placed!</h3>
-      <p>Estimated time: 30-40 mins. Pay cash when it arrives.</p>
+      <div class="confirm-badge" id="confirmBadge">✓</div>
+      <h3 id="confirmTitle">Order Placed!</h3>
+      <p id="confirmSubtext">Estimated time: 30-40 mins. Pay cash when it arrives.</p>
       <div class="order-id-tag" id="confirmOrderId">ORDER #0000</div>
     </div>
+
+    <!-- Live status tracker -->
+    <div style="display:flex; align-items:center; justify-content:center; gap:0; margin:24px 0;">
+      <div style="text-align:center; flex:1;">
+        <div id="stepNew" class="status-step-dot" style="width:32px; height:32px; border-radius:50%; background:var(--tomato); margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff;">1</div>
+        <div style="font-size:10.5px; color:var(--cream-dim);">Placed</div>
+      </div>
+      <div style="flex:1; height:2px; background:var(--line); margin-bottom:22px;" id="lineNewPrep"></div>
+      <div style="text-align:center; flex:1;">
+        <div id="stepPrep" class="status-step-dot" style="width:32px; height:32px; border-radius:50%; background:var(--surface-2); margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--cream-dim);">2</div>
+        <div style="font-size:10.5px; color:var(--cream-dim);">Preparing</div>
+      </div>
+      <div style="flex:1; height:2px; background:var(--line); margin-bottom:22px;" id="linePrepDone"></div>
+      <div style="text-align:center; flex:1;">
+        <div id="stepDone" class="status-step-dot" style="width:32px; height:32px; border-radius:50%; background:var(--surface-2); margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--cream-dim);">3</div>
+        <div style="font-size:10.5px; color:var(--cream-dim);">Ready</div>
+      </div>
+    </div>
+
     <button class="btn-primary" id="confirmDoneBtn"><span>Back to Menu</span><span>🍕</span></button>
   </div>
 </div>
@@ -832,6 +849,10 @@ document.getElementById('cartClose').onclick = () => document.getElementById('ca
 // CHECKOUT SHEET
 // ======================================================
 let orderType = 'Delivery';
+let paymentMode = 'COD';
+
+const UPI_ID = 'shubh.0948@ptyes';
+const UPI_PAYEE_NAME = "Dom's Pizza";
 
 document.getElementById('checkoutOpenBtn').onclick = () => {
   document.getElementById('cartOverlay').classList.remove('open');
@@ -850,12 +871,45 @@ function setOrderType(type){
   document.getElementById('addressField').style.display = type === 'Delivery' ? 'block' : 'none';
 }
 
+document.getElementById('payCod').onclick = () => setPaymentMode('COD');
+document.getElementById('payUpi').onclick = () => setPaymentMode('UPI');
+
+function setPaymentMode(mode){
+  paymentMode = mode;
+  document.getElementById('payCod').classList.toggle('active', mode==='COD');
+  document.getElementById('payUpi').classList.toggle('active', mode==='UPI');
+  document.getElementById('upiQrSection').style.display = mode === 'UPI' ? 'block' : 'none';
+  document.getElementById('paymentNote').style.display = mode === 'COD' ? 'block' : 'none';
+
+  if(mode === 'UPI'){
+    renderUpiQr();
+  }
+}
+
+function renderUpiQr(){
+  const amount = cartTotal();
+  document.getElementById('upiAmountLabel').textContent = money(amount);
+
+  const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Dom\'s Pizza Order')}`;
+
+  const qrContainer = document.getElementById('upiQrCode');
+  qrContainer.innerHTML = '';
+  new QRCode(qrContainer, {
+    text: upiLink,
+    width: 180,
+    height: 180,
+    colorDark: '#1B1410',
+    colorLight: '#ffffff'
+  });
+}
+
 function renderCheckoutTotals(){
   document.getElementById('checkoutTotals').innerHTML = `
     <div class="totals-row"><span>Items (${cartCount()})</span><span>${money(cartTotal())}</span></div>
-    <div class="totals-row grand"><span>Total (Cash on Delivery)</span><span>${money(cartTotal())}</span></div>
+    <div class="totals-row grand"><span>Total</span><span>${money(cartTotal())}</span></div>
   `;
   document.getElementById('checkoutCtaTotal').textContent = money(cartTotal());
+  if(paymentMode === 'UPI') renderUpiQr();
 }
 
 document.getElementById('placeOrderBtn').onclick = async () => {
@@ -879,6 +933,7 @@ document.getElementById('placeOrderBtn').onclick = async () => {
         name, phone,
         address: orderType === 'Delivery' ? address : 'Pickup from store',
         order_type: orderType,
+        payment_mode: paymentMode,
         items: cart
       })
     });
@@ -890,6 +945,7 @@ document.getElementById('placeOrderBtn').onclick = async () => {
     saveCart();
     document.getElementById('checkoutOverlay').classList.remove('open');
     document.getElementById('confirmOverlay').classList.add('open');
+    startOrderTracking(data.order_id);
   }catch(err){
     alert('Order place nahi ho paaya: ' + err.message);
   }finally{
@@ -898,7 +954,76 @@ document.getElementById('placeOrderBtn').onclick = async () => {
   }
 };
 
+// ======================================================
+// LIVE ORDER STATUS TRACKING (while app is open)
+// ======================================================
+let orderTrackingInterval = null;
+
+function startOrderTracking(orderId){
+  updateStatusStepper('New');
+  if(orderTrackingInterval) clearInterval(orderTrackingInterval);
+
+  orderTrackingInterval = setInterval(async () => {
+    try{
+      const res = await fetch(`${API_BASE}/orders/${orderId}/status`);
+      const data = await res.json();
+      if(!data.success) return;
+
+      updateStatusStepper(data.order.status);
+
+      if(data.order.status === 'Done' || data.order.status === 'Cancelled'){
+        clearInterval(orderTrackingInterval);
+      }
+    }catch(err){ /* ignore transient errors, try again next tick */ }
+  }, 8000);
+}
+
+function stopOrderTracking(){
+  if(orderTrackingInterval) clearInterval(orderTrackingInterval);
+}
+
+function updateStatusStepper(status){
+  const stepNew = document.getElementById('stepNew');
+  const stepPrep = document.getElementById('stepPrep');
+  const stepDone = document.getElementById('stepDone');
+  const lineNewPrep = document.getElementById('lineNewPrep');
+  const linePrepDone = document.getElementById('linePrepDone');
+  const title = document.getElementById('confirmTitle');
+  const subtext = document.getElementById('confirmSubtext');
+  const badge = document.getElementById('confirmBadge');
+
+  const activeStyle = (el, active) => {
+    el.style.background = active ? 'var(--tomato)' : 'var(--surface-2)';
+    el.style.color = active ? '#fff' : 'var(--cream-dim)';
+  };
+
+  if(status === 'New'){
+    activeStyle(stepNew, true); activeStyle(stepPrep, false); activeStyle(stepDone, false);
+    lineNewPrep.style.background = 'var(--line)'; linePrepDone.style.background = 'var(--line)';
+    title.textContent = 'Order Placed!';
+    subtext.textContent = 'Waiting for the kitchen to start preparing your order.';
+    badge.textContent = '✓';
+  }else if(status === 'Preparing'){
+    activeStyle(stepNew, true); activeStyle(stepPrep, true); activeStyle(stepDone, false);
+    lineNewPrep.style.background = 'var(--tomato)'; linePrepDone.style.background = 'var(--line)';
+    title.textContent = 'Preparing your order!';
+    subtext.textContent = 'Your pizza is being made fresh right now.';
+    badge.textContent = '👨‍🍳';
+  }else if(status === 'Done'){
+    activeStyle(stepNew, true); activeStyle(stepPrep, true); activeStyle(stepDone, true);
+    lineNewPrep.style.background = 'var(--tomato)'; linePrepDone.style.background = 'var(--tomato)';
+    title.textContent = 'Order Ready!';
+    subtext.textContent = 'Your order is ready. Enjoy your meal!';
+    badge.textContent = '🎉';
+  }else if(status === 'Cancelled'){
+    title.textContent = 'Order Cancelled';
+    subtext.textContent = 'This order was cancelled. Please contact the store if this seems wrong.';
+    badge.textContent = '✕';
+  }
+}
+
 document.getElementById('confirmDoneBtn').onclick = () => {
+  stopOrderTracking();
   document.getElementById('confirmOverlay').classList.remove('open');
   renderMenu();
 };
@@ -932,23 +1057,19 @@ if ('serviceWorker' in navigator) {
 }
 
 // ======================================================
-// AUTH GATE — signup/login via email OTP
+// AUTH GATE — simple signup (name, phone, email — no verification)
 // ======================================================
-let pendingAuthEmail = '';
-
 function showAuthGate(){ document.getElementById('authGate').style.display = 'flex'; }
 function hideAuthGate(){ document.getElementById('authGate').style.display = 'none'; }
 
-function getAuthToken(){ return localStorage.getItem('domsPizzaAuthToken'); }
 function getAuthUser(){
   try{ return JSON.parse(localStorage.getItem('domsPizzaAuthUser') || 'null'); }
   catch(e){ return null; }
 }
 
 function checkAuthOnLoad(){
-  const token = getAuthToken();
   const user = getAuthUser();
-  if(token && user){
+  if(user){
     hideAuthGate();
     prefillCheckoutFromAuth();
   }else{
@@ -965,61 +1086,35 @@ function prefillCheckoutFromAuth(){
   if(phoneField && !phoneField.value) phoneField.value = user.phone;
 }
 
-document.getElementById('authSendOtpBtn').onclick = async () => {
+document.getElementById('authName').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+});
+document.getElementById('authPhone').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+});
+
+document.getElementById('authSignupBtn').onclick = async () => {
   const name = document.getElementById('authName').value.trim();
   const phone = document.getElementById('authPhone').value.trim();
   const email = document.getElementById('authEmail').value.trim();
-  const errBox = document.getElementById('authDetailsError');
+  const errBox = document.getElementById('authError');
   errBox.style.display = 'none';
 
+  if(!name || name.length < 2){ errBox.textContent = 'Sahi naam daalo'; errBox.style.display = 'block'; return; }
+  if(!/^\d{10}$/.test(phone)){ errBox.textContent = 'Sahi 10-digit phone number daalo'; errBox.style.display = 'block'; return; }
   if(!email || !email.includes('@')){ errBox.textContent = 'Sahi email daalo'; errBox.style.display = 'block'; return; }
 
-  const btn = document.getElementById('authSendOtpBtn');
-  btn.disabled = true; btn.querySelector('span').textContent = 'Sending...';
+  const btn = document.getElementById('authSignupBtn');
+  btn.disabled = true; btn.querySelector('span').textContent = 'Please wait...';
 
   try{
-    const res = await fetch(`${API_BASE}/auth/request-otp`, {
+    const res = await fetch(`${API_BASE}/auth/signup`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email, name: name || undefined, phone: phone || undefined })
+      body: JSON.stringify({ name, phone, email })
     });
     const data = await res.json();
-    if(!data.success) throw new Error(data.message || 'Failed');
+    if(!data.success) throw new Error(data.message || 'Signup failed');
 
-    pendingAuthEmail = email;
-    document.getElementById('authOtpEmailLabel').textContent = email;
-    document.getElementById('authDetailsScreen').style.display = 'none';
-    document.getElementById('authOtpScreen').style.display = 'block';
-  }catch(err){
-    errBox.textContent = err.message;
-    errBox.style.display = 'block';
-  }finally{
-    btn.disabled = false; btn.querySelector('span').textContent = 'Send OTP';
-  }
-};
-
-document.getElementById('authOtpInput').addEventListener('input', (e) => {
-  e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
-});
-
-document.getElementById('authVerifyBtn').onclick = async () => {
-  const otp = document.getElementById('authOtpInput').value.trim();
-  const errBox = document.getElementById('authOtpError');
-  errBox.style.display = 'none';
-
-  if(otp.length !== 6){ errBox.textContent = '6-digit code daalo'; errBox.style.display = 'block'; return; }
-
-  const btn = document.getElementById('authVerifyBtn');
-  btn.disabled = true; btn.querySelector('span').textContent = 'Verifying...';
-
-  try{
-    const res = await fetch(`${API_BASE}/auth/verify-otp`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email: pendingAuthEmail, otp })
-    });
-    const data = await res.json();
-    if(!data.success) throw new Error(data.message || 'Failed');
-
-    localStorage.setItem('domsPizzaAuthToken', data.token);
     localStorage.setItem('domsPizzaAuthUser', JSON.stringify(data.user));
     hideAuthGate();
     prefillCheckoutFromAuth();
@@ -1027,23 +1122,8 @@ document.getElementById('authVerifyBtn').onclick = async () => {
     errBox.textContent = err.message;
     errBox.style.display = 'block';
   }finally{
-    btn.disabled = false; btn.querySelector('span').textContent = 'Verify & Continue';
+    btn.disabled = false; btn.querySelector('span').textContent = 'Continue';
   }
-};
-
-document.getElementById('authResendBtn').onclick = async () => {
-  try{
-    await fetch(`${API_BASE}/auth/request-otp`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email: pendingAuthEmail })
-    });
-    alert('Naya code bhej diya gaya hai');
-  }catch(err){ /* ignore */ }
-};
-
-document.getElementById('authBackBtn').onclick = () => {
-  document.getElementById('authOtpScreen').style.display = 'none';
-  document.getElementById('authDetailsScreen').style.display = 'block';
 };
 
 // ======================================================
