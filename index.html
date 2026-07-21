@@ -639,8 +639,12 @@ function renderMenu(){
 
 function itemCardHTML(item){
   const price = item.has_sizes ? item.base_price : item.base_price;
+  const imageHTML = item.image_url
+    ? `<img src="${item.image_url}" alt="${item.name}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; margin-bottom:8px;" loading="lazy">`
+    : '';
   return `
     <div class="item-card">
+      ${imageHTML}
       <div class="item-top">
         <div class="veg-dot ${item.food_type === 'Non-Veg' ? 'nonveg' : ''}"></div>
       </div>
