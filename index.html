@@ -28,6 +28,19 @@
     --line: rgba(247,237,224,0.12);
     --shadow: 0 12px 30px rgba(0,0,0,0.35);
   }
+  body.light-theme{
+    --bg: #FFF8F0;
+    --surface: #FFFFFF;
+    --surface-2: #F3E8D8;
+    --cream: #2A1F1A;
+    --cream-dim: #8A7967;
+    --tomato: #E8491D;
+    --tomato-dark: #C43813;
+    --gold: #C17F2E;
+    --basil: #4C7A3D;
+    --line: rgba(27,20,16,0.10);
+    --shadow: 0 12px 30px rgba(0,0,0,0.08);
+  }
   *{ box-sizing: border-box; }
   html,body{ margin:0; padding:0; }
   body{
@@ -346,6 +359,7 @@
     <div class="brand-name">DOM'S <span>PIZZA</span></div>
   </div>
   <div style="display:flex; gap:8px;">
+    <button class="cart-btn" id="themeToggleBtn">🌙</button>
     <button class="cart-btn" id="ordersOpenBtn">📋</button>
     <button class="cart-btn" id="cartOpenBtn">
       🛒 Cart <span class="cart-count" id="cartCount">0</span>
@@ -1178,6 +1192,29 @@ document.getElementById('authSignupBtn').onclick = async () => {
     btn.disabled = false; btn.querySelector('span').textContent = 'Continue';
   }
 };
+
+// ======================================================
+// THEME TOGGLE (light/dark)
+// ======================================================
+function applyTheme(theme){
+  const btn = document.getElementById('themeToggleBtn');
+  if(theme === 'light'){
+    document.body.classList.add('light-theme');
+    btn.textContent = '☀️';
+  }else{
+    document.body.classList.remove('light-theme');
+    btn.textContent = '🌙';
+  }
+  localStorage.setItem('domsPizzaTheme', theme);
+}
+
+document.getElementById('themeToggleBtn').onclick = () => {
+  const isLight = document.body.classList.contains('light-theme');
+  applyTheme(isLight ? 'dark' : 'light');
+};
+
+// Apply saved preference (or default dark) as early as possible
+applyTheme(localStorage.getItem('domsPizzaTheme') || 'dark');
 
 // ======================================================
 // INIT
