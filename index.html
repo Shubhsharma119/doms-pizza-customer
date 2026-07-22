@@ -347,6 +347,10 @@
       <label>Email</label>
       <input type="email" id="authEmail" placeholder="you@example.com">
     </div>
+    <div class="field">
+      <label>Referral Code (optional)</label>
+      <input type="text" id="authReferralCode" placeholder="Friend's code, if you have one" style="text-transform:uppercase;">
+    </div>
     <button class="btn-primary" id="authSignupBtn" style="width:100%;"><span>Continue</span></button>
     <p id="authError" style="color:var(--tomato); font-size:12.5px; margin-top:10px; text-align:center; display:none;"></p>
   </div>
@@ -359,6 +363,7 @@
     <div class="brand-name">DOM'S <span>PIZZA</span></div>
   </div>
   <div style="display:flex; gap:8px;">
+    <button class="cart-btn" id="referOpenBtn">🎁</button>
     <button class="cart-btn" id="themeToggleBtn">🌙</button>
     <button class="cart-btn" id="ordersOpenBtn">📋</button>
     <button class="cart-btn" id="cartOpenBtn">
@@ -411,6 +416,31 @@
         <span>Add to Cart</span>
         <span id="customizeAddPrice">₹0</span>
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REFER & EARN SHEET ============ -->
+<div class="overlay" id="referOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <button class="sheet-close" id="referClose">✕</button>
+    <div style="text-align:center; margin-bottom:22px;">
+      <div style="font-size:40px; margin-bottom:10px;">🎁</div>
+      <h3 style="margin:0 0 6px;">Refer & Earn</h3>
+      <p style="color:var(--cream-dim); font-size:13px; margin:0;">Share your code — when your friend completes their first order, you get <strong style="color:var(--gold);">50 points!</strong></p>
+    </div>
+
+    <div style="background:var(--surface); border:1px dashed var(--line); border-radius:14px; padding:20px; text-align:center; margin-bottom:16px;">
+      <div style="font-size:11px; color:var(--cream-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">Your Referral Code</div>
+      <div id="referCodeDisplay" style="font-family:'Anton',sans-serif; font-size:28px; letter-spacing:4px; color:var(--gold);">------</div>
+    </div>
+
+    <button class="btn-primary" id="referShareBtn" style="width:100%; margin-bottom:14px;"><span>📤 Share with Friends</span></button>
+
+    <div style="background:var(--surface-2); border-radius:14px; padding:16px; text-align:center;">
+      <div style="font-size:11px; color:var(--cream-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">Your Loyalty Points</div>
+      <div id="referPointsDisplay" style="font-family:'Anton',sans-serif; font-size:26px; color:var(--basil);">0</div>
     </div>
   </div>
 </div>
@@ -877,6 +907,55 @@ document.getElementById('cartFabBtn').onclick = openCart;
 // ======================================================
 // ORDER HISTORY
 // ======================================================
+// ======================================================
+// REFER & EARN
+// ======================================================
+document.getElementById('referOpenBtn').onclick = openReferSheet;
+document.getElementById('referClose').onclick = () => document.getElementById('referOverlay').classList.remove('open');
+
+async function openReferSheet(){
+  const overlay = document.getElementById('referOverlay');
+  overlay.classList.add('open');
+
+  const user = getAuthUser();
+  if(!user || !user.phone) return;
+
+  // Show cached values immediately, then refresh from server
+  document.getElementById('referCodeDisplay').textContent = user.referralCode || '------';
+  document.getElementById('referPointsDisplay').textContent = user.loyaltyPoints || 0;
+
+  try{
+    const res = await fetch(`${API_BASE}/auth/points/${user.phone}`);
+    const data = await res.json();
+    if(data.success){
+      document.getElementById('referCodeDisplay').textContent = data.referralCode;
+      document.getElementById('referPointsDisplay').textContent = data.loyaltyPoints;
+
+      // Keep localStorage in sync
+      user.referralCode = data.referralCode;
+      user.loyaltyPoints = data.loyaltyPoints;
+      localStorage.setItem('domsPizzaAuthUser', JSON.stringify(user));
+    }
+  }catch(err){ /* keep showing cached values if this fails */ }
+}
+
+document.getElementById('referShareBtn').onclick = async () => {
+  const user = getAuthUser();
+  const code = user?.referralCode || '';
+  const shareText = `Order fresh pizza from Dom's Pizza! Use my code ${code} when you sign up. 🍕\n${window.location.origin}`;
+
+  if(navigator.share){
+    try{ await navigator.share({ text: shareText }); }catch(err){ /* user cancelled, ignore */ }
+  }else{
+    try{
+      await navigator.clipboard.writeText(shareText);
+      alert('Copied! Paste and share with your friends.');
+    }catch(err){
+      alert(shareText);
+    }
+  }
+};
+
 document.getElementById('ordersOpenBtn').onclick = openOrderHistory;
 document.getElementById('ordersClose').onclick = () => document.getElementById('ordersOverlay').classList.remove('open');
 
@@ -1164,6 +1243,7 @@ document.getElementById('authSignupBtn').onclick = async () => {
   const name = document.getElementById('authName').value.trim();
   const phone = document.getElementById('authPhone').value.trim();
   const email = document.getElementById('authEmail').value.trim();
+  const referredCode = document.getElementById('authReferralCode').value.trim().toUpperCase();
   const errBox = document.getElementById('authError');
   errBox.style.display = 'none';
 
@@ -1177,7 +1257,7 @@ document.getElementById('authSignupBtn').onclick = async () => {
   try{
     const res = await fetch(`${API_BASE}/auth/signup`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name, phone, email })
+      body: JSON.stringify({ name, phone, email, referredCode: referredCode || undefined })
     });
     const data = await res.json();
     if(!data.success) throw new Error(data.message || 'Signup failed');
