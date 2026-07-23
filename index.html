@@ -387,6 +387,13 @@
   </div>
 </div>
 
+<!-- ============ VEG / NON-VEG FILTER ============ -->
+<div class="chip-row" style="padding-top:0;">
+  <button class="chip active" id="foodTypeAll">All</button>
+  <button class="chip" id="foodTypeVeg">🟢 Veg</button>
+  <button class="chip" id="foodTypeNonVeg">🔴 Non-Veg</button>
+</div>
+
 <!-- ============ CATEGORY CHIPS ============ -->
 <div class="chip-row" id="chipRow"></div>
 
@@ -568,6 +575,7 @@ let categories = [];      // menu data from API
 let toppingsList = [];
 let cart = JSON.parse(localStorage.getItem('domsPizzaCart') || '[]');
 let activeCategory = 'all';
+let foodTypeFilter = 'all';
 let currentCustomizeItem = null;
 let currentSize = 'Small';
 let currentToppings = [];
@@ -652,6 +660,9 @@ function renderMenu(){
   categories.forEach(cat=>{
     let items = cat.items;
     if(activeCategory !== 'all' && cat.id !== activeCategory) return;
+    if(foodTypeFilter !== 'all'){
+      items = items.filter(i => i.food_type === foodTypeFilter);
+    }
     if(searchTerm){
       items = items.filter(i => i.name.toLowerCase().includes(searchTerm));
     }
@@ -1192,6 +1203,20 @@ document.getElementById('custName').addEventListener('input', (e) => {
 // SEARCH
 // ======================================================
 document.getElementById('searchInput').addEventListener('input', renderMenu);
+
+// ======================================================
+// VEG / NON-VEG FILTER
+// ======================================================
+function setFoodTypeFilter(type){
+  foodTypeFilter = type;
+  document.getElementById('foodTypeAll').classList.toggle('active', type === 'all');
+  document.getElementById('foodTypeVeg').classList.toggle('active', type === 'Veg');
+  document.getElementById('foodTypeNonVeg').classList.toggle('active', type === 'Non-Veg');
+  renderMenu();
+}
+document.getElementById('foodTypeAll').onclick = () => setFoodTypeFilter('all');
+document.getElementById('foodTypeVeg').onclick = () => setFoodTypeFilter('Veg');
+document.getElementById('foodTypeNonVeg').onclick = () => setFoodTypeFilter('Non-Veg');
 
 // ======================================================
 // PWA — register service worker (makes app installable)
