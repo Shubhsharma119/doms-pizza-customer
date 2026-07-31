@@ -1322,6 +1322,7 @@ document.getElementById('authSignupBtn').onclick = async () => {
 
   if(!name || name.length < 2){ errBox.textContent = 'Sahi naam daalo'; errBox.style.display = 'block'; return; }
   if(!/^\d{10}$/.test(phone)){ errBox.textContent = 'Sahi 10-digit phone number daalo'; errBox.style.display = 'block'; return; }
+  if(/^(\d)\1{9}$/.test(phone)){ errBox.textContent = 'Sahi phone number daalo (ek hi digit repeat nahi ho sakta)'; errBox.style.display = 'block'; return; }
   if(!email || !email.includes('@')){ errBox.textContent = 'Sahi email daalo'; errBox.style.display = 'block'; return; }
 
   const btn = document.getElementById('authSignupBtn');
