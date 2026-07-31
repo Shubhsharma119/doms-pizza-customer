@@ -321,6 +321,30 @@
   @media (min-width: 640px){
     .item-grid{ grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); }
   }
+
+  /* ============ RESPONSIVE: Tablet & Desktop ============ */
+  @media (min-width: 768px){
+    .topbar{ padding-left: 40px; padding-right: 40px; }
+    .hero{ padding-left: 40px; padding-right: 40px; }
+    .search-wrap{ padding-left: 40px; padding-right: 40px; }
+    .chip-row{ padding-left: 40px; padding-right: 40px; }
+    .menu{ padding-left: 40px; padding-right: 40px; }
+    .item-grid{ grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 18px; }
+  }
+
+  @media (min-width: 1024px){
+    .topbar, .hero, .search-wrap, .chip-row, .menu{ padding-left: 60px; padding-right: 60px; }
+    .item-grid{ grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 20px; }
+    .hero h1{ font-size: 52px; }
+  }
+
+  @media (min-width: 1440px){
+    .topbar, .hero, .search-wrap, .chip-row, .menu{ padding-left: 100px; padding-right: 100px; }
+    .item-grid{ grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); }
+  }
+
+  /* Sheets/modals already cap at max-width:480px via inline .sheet rule,
+     which keeps them comfortably narrow and centered on any screen size. */
 </style>
 </head>
 <body>
@@ -514,8 +538,12 @@
 
     <div id="upiQrSection" style="display:none; text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:14px;">
       <p style="font-size:12.5px; color:var(--cream-dim); margin:0 0 14px;">Pay <strong id="upiAmountLabel" style="color:var(--cream);">₹0</strong> via UPI</p>
-      <a href="#" id="upiPayBtn" style="display:block; background:var(--tomato); color:#fff; font-weight:700; font-size:15px; padding:14px; border-radius:10px; text-decoration:none; margin-bottom:10px;">📱 Tap to Pay with UPI App</a>
-      <p style="font-size:11px; color:var(--cream-dim); margin:0;">This will open your UPI app (PhonePe, GPay, Paytm, etc.) with the amount pre-filled. Then tap "Place Order" below to confirm.</p>
+      <a href="#" id="upiPayBtn" style="display:block; background:var(--tomato); color:#fff; font-weight:700; font-size:15px; padding:14px; border-radius:10px; text-decoration:none; margin-bottom:14px;">📱 Tap to Pay with UPI App</a>
+      <label class="checkbox-row" id="upiConfirmRow" style="justify-content:center; opacity:0.5; pointer-events:none;">
+        <input type="checkbox" id="upiPaymentConfirm" disabled>
+        <span style="text-transform:none; font-size:13px; color:var(--cream);">I have completed the payment</span>
+      </label>
+      <p id="upiConfirmHint" style="font-size:11px; color:var(--cream-dim); margin:10px 0 0;">Tap "Pay with UPI App" above first, complete the payment, then check this box.</p>
     </div>
 
     <div class="totals-ticket" id="checkoutTotals"></div>
@@ -1047,6 +1075,14 @@ function setPaymentMode(mode){
 
   if(mode === 'UPI'){
     renderUpiQr();
+    // Reset confirmation state each time UPI is selected
+    document.getElementById('upiPaymentConfirm').checked = false;
+    document.getElementById('upiPaymentConfirm').disabled = true;
+    document.getElementById('upiConfirmRow').style.opacity = '0.5';
+    document.getElementById('upiConfirmRow').style.pointerEvents = 'none';
+    document.getElementById('placeOrderBtn').disabled = true;
+  }else{
+    document.getElementById('placeOrderBtn').disabled = false;
   }
 }
 
@@ -1058,6 +1094,19 @@ function renderUpiQr(){
 
   document.getElementById('upiPayBtn').href = upiLink;
 }
+
+// Once the customer taps to pay, unlock the confirmation checkbox
+document.getElementById('upiPayBtn').addEventListener('click', () => {
+  document.getElementById('upiPaymentConfirm').disabled = false;
+  document.getElementById('upiConfirmRow').style.opacity = '1';
+  document.getElementById('upiConfirmRow').style.pointerEvents = 'auto';
+  document.getElementById('upiConfirmHint').textContent = 'Completed the payment? Check the box above to continue.';
+});
+
+// Only checking the box (after tapping to pay) enables placing the order
+document.getElementById('upiPaymentConfirm').addEventListener('change', (e) => {
+  document.getElementById('placeOrderBtn').disabled = !e.target.checked;
+});
 
 function renderCheckoutTotals(){
   document.getElementById('checkoutTotals').innerHTML = `
