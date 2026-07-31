@@ -1371,6 +1371,21 @@ document.getElementById('themeToggleBtn').onclick = () => {
 applyTheme(localStorage.getItem('domsPizzaTheme') || 'dark');
 
 // ======================================================
+// BASIC DETERRENTS — not real security, just discourages casual copying
+// (source is always technically viewable in a browser, this just adds friction)
+// ======================================================
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+  const blockedCombo =
+    key === 'f12' ||
+    (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(key)) ||
+    (e.ctrlKey && key === 'u');
+  if (blockedCombo) e.preventDefault();
+});
+
+// ======================================================
 // INIT
 // ======================================================
 renderCartBadges();
