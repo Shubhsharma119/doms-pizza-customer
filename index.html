@@ -400,6 +400,12 @@
   <div class="hero-eyebrow">Hot &amp; Fresh · Delivered Fast</div>
   <h1>Fast Food,<br>Fired Up.</h1>
   <p>Pizza, burgers, sides &amp; more — made fresh to order.</p>
+  <div style="display:inline-flex; align-items:center; gap:6px; margin-top:12px; background:rgba(92,138,70,0.15); border:1px solid var(--basil); padding:6px 14px; border-radius:999px;">
+    <span style="width:12px; height:12px; border:1.5px solid var(--basil); border-radius:2px; display:flex; align-items:center; justify-content:center;">
+      <span style="width:6px; height:6px; border-radius:50%; background:var(--basil);"></span>
+    </span>
+    <span style="font-size:12.5px; font-weight:700; color:var(--basil);">100% Pure Vegetarian</span>
+  </div>
 </div>
 
 <!-- ============ SEARCH ============ -->
@@ -408,13 +414,6 @@
     <span>🔍</span>
     <input type="text" id="searchInput" placeholder="Search for pizza, burger, fries...">
   </div>
-</div>
-
-<!-- ============ VEG / NON-VEG FILTER ============ -->
-<div class="chip-row" style="padding-top:0;">
-  <button class="chip active" id="foodTypeAll">All</button>
-  <button class="chip" id="foodTypeVeg">🟢 Veg</button>
-  <button class="chip" id="foodTypeNonVeg">🔴 Non-Veg</button>
 </div>
 
 <!-- ============ CATEGORY CHIPS ============ -->
@@ -727,9 +726,6 @@ function itemCardHTML(item){
   return `
     <div class="item-card">
       ${imageHTML}
-      <div class="item-top">
-        <div class="veg-dot ${item.food_type === 'Non-Veg' ? 'nonveg' : ''}"></div>
-      </div>
       <div class="item-name">${item.name}</div>
       <div class="item-desc">${item.description || ''}</div>
       <div class="item-bottom">
@@ -1251,20 +1247,6 @@ document.getElementById('custName').addEventListener('input', (e) => {
 // SEARCH
 // ======================================================
 document.getElementById('searchInput').addEventListener('input', renderMenu);
-
-// ======================================================
-// VEG / NON-VEG FILTER
-// ======================================================
-function setFoodTypeFilter(type){
-  foodTypeFilter = type;
-  document.getElementById('foodTypeAll').classList.toggle('active', type === 'all');
-  document.getElementById('foodTypeVeg').classList.toggle('active', type === 'Veg');
-  document.getElementById('foodTypeNonVeg').classList.toggle('active', type === 'Non-Veg');
-  renderMenu();
-}
-document.getElementById('foodTypeAll').onclick = () => setFoodTypeFilter('all');
-document.getElementById('foodTypeVeg').onclick = () => setFoodTypeFilter('Veg');
-document.getElementById('foodTypeNonVeg').onclick = () => setFoodTypeFilter('Non-Veg');
 
 // ======================================================
 // PWA — register service worker (makes app installable)
