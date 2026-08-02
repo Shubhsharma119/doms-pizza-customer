@@ -403,7 +403,7 @@
     <span style="width:12px; height:12px; border:1.5px solid var(--basil); border-radius:2px; display:flex; align-items:center; justify-content:center;">
       <span style="width:6px; height:6px; border-radius:50%; background:var(--basil);"></span>
     </span>
-    <span style="font-size:12.5px; font-weight:700; color:var(--basil);">100% Pure Vegetarian</span>
+    <span style="font-size:12.5px; font-weight:700; color:var(--basil);">140% Pure Vegetarian</span>
   </div>
 </div>
 
@@ -1007,8 +1007,8 @@ document.getElementById('profileSaveBtn').onclick = async () => {
   const errBox = document.getElementById('profileError');
   errBox.style.display = 'none';
 
-  if(!name || name.length < 2){ errBox.textContent = 'Sahi naam daalo'; errBox.style.display = 'block'; return; }
-  if(!/^\d{10}$/.test(phone)){ errBox.textContent = 'Sahi 10-digit phone number daalo'; errBox.style.display = 'block'; return; }
+  if(!name || name.length < 2){ errBox.textContent = 'PLZ ENTER CORRECT NAME'; errBox.style.display = 'block'; return; }
+  if(!/^\d{10}$/.test(phone)){ errBox.textContent = 'PLZ ENTER CORRECT NUMBER'; errBox.style.display = 'block'; return; }
 
   const btn = document.getElementById('profileSaveBtn');
   btn.disabled = true; btn.querySelector('span').textContent = 'Saving...';
@@ -1365,10 +1365,10 @@ document.getElementById('authSignupBtn').onclick = async () => {
   const errBox = document.getElementById('authError');
   errBox.style.display = 'none';
 
-  if(!name || name.length < 2){ errBox.textContent = 'Sahi naam daalo'; errBox.style.display = 'block'; return; }
-  if(!/^\d{10}$/.test(phone)){ errBox.textContent = 'Sahi 10-digit phone number daalo'; errBox.style.display = 'block'; return; }
-  if(/^(\d)\1{9}$/.test(phone)){ errBox.textContent = 'Sahi phone number daalo (ek hi digit repeat nahi ho sakta)'; errBox.style.display = 'block'; return; }
-  if(!email || !email.includes('@')){ errBox.textContent = 'Sahi email daalo'; errBox.style.display = 'block'; return; }
+  if(!name || name.length < 2){ errBox.textContent = 'PLZ ENTER CORRECT NAME'; errBox.style.display = 'block'; return; }
+  if(!/^\d{10}$/.test(phone)){ errBox.textContent = 'PLZ ENTER CORRECT NUMBER'; errBox.style.display = 'block'; return; }
+  if(/^(\d)\1{9}$/.test(phone)){ errBox.textContent = 'PLZ ENTER CORRECT NUMBER (DON'T REPEAT SAME DIGIT)'; errBox.style.display = 'block'; return; }
+  if(!email || !email.includes('@')){ errBox.textContent = 'PLZ ENTER CORRECT EMAIL'; errBox.style.display = 'block'; return; }
 
   const btn = document.getElementById('authSignupBtn');
   btn.disabled = true; btn.querySelector('span').textContent = 'Please wait...';
