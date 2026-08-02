@@ -1367,7 +1367,7 @@ document.getElementById('authSignupBtn').onclick = async () => {
 
   if(!name || name.length < 2){ errBox.textContent = 'PLZ ENTER CORRECT NAME'; errBox.style.display = 'block'; return; }
   if(!/^\d{10}$/.test(phone)){ errBox.textContent = 'PLZ ENTER CORRECT NUMBER'; errBox.style.display = 'block'; return; }
-  if(/^(\d)\1{9}$/.test(phone)){ errBox.textContent = 'PLZ ENTER CORRECT NUMBER (DON'T REPEAT SAME DIGIT)'; errBox.style.display = 'block'; return; }
+  if(/^(\d)\1{9}$/.test(phone)){ errBox.textContent = 'PLZ ENTER CORRECT NUMBER (DONT REPEAT SAME DIGIT)'; errBox.style.display = 'block'; return; }
   if(!email || !email.includes('@')){ errBox.textContent = 'PLZ ENTER CORRECT EMAIL'; errBox.style.display = 'block'; return; }
 
   const btn = document.getElementById('authSignupBtn');
