@@ -39,13 +39,13 @@
   }
   h1,h2,h3, .display{
     font-family: 'Anton', sans-serif;
-    font-weight: 400;
+    ont-family: inherit; cursor: pointer; border: none; }
+  ::selection{ background: var(--tomato); color: var(--cream); }font-weight: 400;
     letter-spacing: 0.02em;
     text-transform: uppercase;
   }
   a{ color: inherit; }
-  button{ font-family: inherit; cursor: pointer; border: none; }
-  ::selection{ background: var(--tomato); color: var(--cream); }
+  button{ f
 
   /* ---------- Top bar ---------- */
   .topbar{
@@ -210,6 +210,11 @@
     padding: 20px 20px 28px; position:relative;
     animation: slideUp .25s ease;
     border-top: 1px solid var(--line);
+    scrollbar-width: none;
+-ms-overflow-style: none;
+}
+.sheet::-webkit-scrollbar{
+  display: none;
   }
   @keyframes slideUp{ from{ transform: translateY(40px); opacity:0; } to{ transform:none; opacity:1; } }
   .sheet-handle{ width:40px; height:4px; background: var(--line); border-radius:99px; margin: 0 auto 16px; }
