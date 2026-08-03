@@ -493,19 +493,27 @@
     </div>
 
     <!-- My Orders -->
-    <div style="border-top:1px solid var(--line); padding-top:18px; margin-top:22px;">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-        <span style="font-size:20px;">📋</span>
-        <div style="font-weight:700; font-size:15px;">My Orders</div>
-      </div>
-      <div id="ordersHistoryBody"></div>
+<div style="border-top:1px solid var(--line); padding-top:18px; margin-top:22px;">
+
+  <div id="myOrdersBtn"
+       style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:20px;">📋</span>
+      <div style="font-weight:700; font-size:15px;">My Orders</div>
     </div>
+
+    <span id="myOrdersArrow">▼</span>
+  </div>
+
+  <div id="ordersHistoryBody" style="display:none; margin-top:12px;"></div>
+
+</div>
 
     <!-- Logout -->
     <button id="profileLogoutBtn" style="width:100%; background:none; color:var(--tomato); font-weight:700; font-size:13px; padding:16px; margin-top:20px; border-top:1px solid var(--line);">Log Out</button>
   </div>
 </div>
-
 <!-- ============ CART SHEET ============ -->
 <div class="overlay" id="cartOverlay">
   <div class="sheet">
@@ -997,7 +1005,7 @@ async function openProfileSheet(){
     }catch(err){ /* keep cached values */ }
   }
 
-  loadOrderHistoryInto('ordersHistoryBody');
+ // loadOrderHistoryInto('ordersHistoryBody');
 }
 
 document.getElementById('profileSaveBtn').onclick = async () => {
@@ -1039,7 +1047,26 @@ document.getElementById('profileLogoutBtn').onclick = () => {
     location.reload();
   }
 };
+let ordersExpanded = false;
 
+document.getElementById('myOrdersBtn').onclick = async () => {
+  const body = document.getElementById('ordersHistoryBody');
+  const arrow = document.getElementById('myOrdersArrow');
+
+  if (ordersExpanded) {
+    body.style.display = 'none';
+    arrow.textContent = '▼';
+    ordersExpanded = false;
+    return;
+  }
+
+  body.style.display = 'block';
+  arrow.textContent = '▲';
+
+  await loadOrderHistoryInto('ordersHistoryBody');
+
+  ordersExpanded = true;
+};
 document.getElementById('referShareBtn').onclick = async () => {
   const user = getAuthUser();
   const code = user?.referralCode || '';
