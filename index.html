@@ -1138,36 +1138,24 @@ document.getElementById('checkoutClose').onclick = () => document.getElementById
 
 document.getElementById('typeDelivery').onclick = () => setOrderType('Delivery');
 document.getElementById('typePickup').onclick = () => setOrderType('Pickup');
-
-function setOrderType(type){
+ function setOrderType(type){
   orderType = type;
   document.getElementById('typeDelivery').classList.toggle('active', type==='Delivery');
   document.getElementById('typePickup').classList.toggle('active', type==='Pickup');
   document.getElementById('addressField').style.display = type === 'Delivery' ? 'block' : 'none';
-}
 
-document.getElementById('payCod').onclick = () => setPaymentMode('COD');
-document.getElementById('payUpi').onclick = () => setPaymentMode('UPI');
-
-function setPaymentMode(mode){
-  paymentMode = mode;
-  document.getElementById('payCod').classList.toggle('active', mode==='COD');
-  document.getElementById('payUpi').classList.toggle('active', mode==='UPI');
-  document.getElementById('upiQrSection').style.display = mode === 'UPI' ? 'block' : 'none';
-  document.getElementById('paymentNote').style.display = mode === 'COD' ? 'block' : 'none';
-
-  if(mode === 'UPI'){
-    renderUpiQr();
-    document.getElementById('upiPaymentConfirm').checked = false;
-    document.getElementById('upiPaymentConfirm').disabled = true;
-    document.getElementById('upiConfirmRow').style.opacity = '0.5';
-    document.getElementById('upiConfirmRow').style.pointerEvents = 'none';
-    document.getElementById('placeOrderBtn').disabled = true;
+  if(type === 'Delivery'){
+    // Delivery = UPI only
+    document.getElementById('payCod').style.display = 'none';
+    document.getElementById('paymentNote').style.display = 'none';
+    setPaymentMode('UPI');
   }else{
-    document.getElementById('placeOrderBtn').disabled = false;
+    // Pickup = Cash + UPI
+    document.getElementById('payCod').style.display = '';
+    document.getElementById('paymentNote').style.display = 'block';
+    setPaymentMode('COD');
   }
 }
-
 function renderUpiQr(){
   const amount = cartTotal();
   document.getElementById('upiAmountLabel').textContent = money(amount);
