@@ -1156,6 +1156,28 @@ document.getElementById('typePickup').onclick = () => setOrderType('Pickup');
     setPaymentMode('COD');
   }
 }
+  document.getElementById('payCod').onclick = () => setPaymentMode('COD');
+document.getElementById('payUpi').onclick = () => setPaymentMode('UPI');
+
+function setPaymentMode(mode){
+  paymentMode = mode;
+
+  document.getElementById('payCod').classList.toggle('active', mode === 'COD');
+  document.getElementById('payUpi').classList.toggle('active', mode === 'UPI');
+  document.getElementById('upiQrSection').style.display = mode === 'UPI' ? 'block' : 'none';
+  document.getElementById('paymentNote').style.display = mode === 'COD' ? 'block' : 'none';
+
+  if(mode === 'UPI'){
+    renderUpiQr();
+    document.getElementById('upiPaymentConfirm').checked = false;
+    document.getElementById('upiPaymentConfirm').disabled = true;
+    document.getElementById('upiConfirmRow').style.opacity = '0.5';
+    document.getElementById('upiConfirmRow').style.pointerEvents = 'none';
+    document.getElementById('placeOrderBtn').disabled = true;
+  }else{
+    document.getElementById('placeOrderBtn').disabled = false;
+  }
+}
 function renderUpiQr(){
   const amount = cartTotal();
   document.getElementById('upiAmountLabel').textContent = money(amount);
